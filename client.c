@@ -6,7 +6,7 @@
 /*   By: lvichi <lvichi@student.42porto.com>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/21 17:31:37 by lvichi            #+#    #+#             */
-/*   Updated: 2023/12/01 20:55:42 by lvichi           ###   ########.fr       */
+/*   Updated: 2023/12/01 21:52:11 by lvichi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,6 +68,7 @@ static void	send_string(int pid, char *str)
 	int	j;
 
 	i = -1;
+	usleep(50000);
 	while (str[++i])
 	{
 		j = -1;
@@ -77,7 +78,7 @@ static void	send_string(int pid, char *str)
 				kill(pid, SIGUSR1);
 			else
 				kill(pid, SIGUSR2);
-			usleep(250);
+			usleep(300);
 			str[i] = str[i] << 1;
 		}
 	}
@@ -94,7 +95,7 @@ static void	send_len(int pid, int len)
 			kill(pid, SIGUSR1);
 		else
 			kill(pid, SIGUSR2);
-		usleep(500);
+		usleep(1000);
 		len = len << 1;
 	}
 }
