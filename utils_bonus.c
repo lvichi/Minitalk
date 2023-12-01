@@ -1,16 +1,49 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   client.c                                           :+:      :+:    :+:   */
+/*   utils_bonus.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lvichi <lvichi@student.42porto.com>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/11/21 17:31:37 by lvichi            #+#    #+#             */
-/*   Updated: 2023/12/01 20:55:42 by lvichi           ###   ########.fr       */
+/*   Created: 2023/11/30 20:26:49 by lvichi            #+#    #+#             */
+/*   Updated: 2023/12/01 20:25:51 by lvichi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minitalk.h"
+#include "minitalk_bonus.h"
+
+int	check_str(char *str)
+{
+	int	check;
+	int	i;
+
+	check = 0;
+	i = -1;
+	if (!str)
+		return (0);
+	while (str[++i])
+	{
+		if (i % 2 == 0)
+			check += str[i];
+		else
+			check -= str[i];
+	}
+	return (check);
+}
+
+void	print_pid(int op)
+{
+	char	*pid;
+
+	pid = ft_itoa(getpid());
+	if (op == 1)
+		write(1, "Server PID: ", 11);
+	else
+		write(1, "Client PID: ", 11);
+	write(1, pid, ft_strlen(pid));
+	write(1, "\n", 1);
+	free(pid);
+}
 
 static char	format_char(char c)
 {
@@ -34,7 +67,7 @@ static char	format_char(char c)
 		return (c);
 }
 
-static char	*get_formatted_str(char *str)
+char	*get_formatted_str(char *str)
 {
 	char	*formatted_str;
 	int		i;
@@ -60,56 +93,4 @@ static char	*get_formatted_str(char *str)
 	}
 	formatted_str[j] = 0;
 	return (formatted_str);
-}
-
-static void	send_string(int pid, char *str)
-{
-	int	i;
-	int	j;
-
-	i = -1;
-	while (str[++i])
-	{
-		j = -1;
-		while (++j < 8)
-		{
-			if (str[i] & 128)
-				kill(pid, SIGUSR1);
-			else
-				kill(pid, SIGUSR2);
-			usleep(250);
-			str[i] = str[i] << 1;
-		}
-	}
-}
-
-static void	send_len(int pid, int len)
-{
-	int	i;
-
-	i = -1;
-	while (++i < (32))
-	{
-		if (len & 2147483648)
-			kill(pid, SIGUSR1);
-		else
-			kill(pid, SIGUSR2);
-		usleep(500);
-		len = len << 1;
-	}
-}
-
-int	main(int argc, char **argv)
-{
-	char	*str;
-
-	if (argc != 3)
-	{
-		write (1, "Incorrect arguments.\n", 21);
-		return (0);
-	}
-	str = get_formatted_str(argv[2]);
-	send_len(ft_atoi(argv[1]), ft_strlen(str));
-	send_string(ft_atoi(argv[1]), str);
-	free(str);
 }

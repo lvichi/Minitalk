@@ -1,54 +1,41 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   server.c                                           :+:      :+:    :+:   */
+/*   server_bonus.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lvichi <lvichi@student.42porto.com>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/20 17:48:45 by lvichi            #+#    #+#             */
-/*   Updated: 2023/12/01 20:54:43 by lvichi           ###   ########.fr       */
+/*   Updated: 2023/12/01 20:52:20 by lvichi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minitalk.h"
+#include "minitalk_bonus.h"
 
-int	g_letter;
+int	g_buffer;
 
 static void	sig_handler(int signum)
 {
 	if (signum == 10)
 	{
-		g_letter = g_letter << 1;
-		g_letter = g_letter + 1;
+		g_buffer = g_buffer << 1;
+		g_buffer = g_buffer + 1;
 	}
 	else if (signum == 12)
-		g_letter = g_letter << 1;
+		g_buffer = g_buffer << 1;
 	else
 		exit(0);
 }
 
-static void	print_pid(void)
-{
-	char	*pid;
-
-	pid = ft_itoa(getpid());
-	write(1, "Server PID: ", 11);
-	write(1, pid, ft_strlen(pid));
-	write(1, "\n", 1);
-	free(pid);
-}
-
-static int	get_len(void)
+static int	get_int(void)
 {
 	int	i;
-	int	len;
 
+	g_buffer = 0;
 	i = -1;
 	while (++i < 32)
 		sleep(30000);
-	len = g_letter;
-	g_letter = 0;
-	return (len);
+	return (g_buffer);
 }
 
 static char	*get_str(int len)
@@ -66,36 +53,54 @@ static char	*get_str(int len)
 		j = -1;
 		while (++j < 8)
 		{
-			if (!sleep(2))
+			if (!usleep(100000))
 			{
 				free(str);
 				return (NULL);
 			}
 		}
-		str[i] = g_letter;
+		str[i] = g_buffer;
 	}
 	str[i] = 0;
 	return (str);
 }
 
+static void	print(char *str, int s_pid, int check)
+{
+	int	i;
+
+	i = -1;
+	if (check == check_str(str) && ft_strlen(str) != 0)
+	{
+		while (str[++i])
+			write(1, &str[i], 1);
+		kill(s_pid, SIGUSR1);
+	}
+	free(str);
+}
+
 int	main(void)
 {
-	char	*str;
-	int		len;
+	char				*str;
+	int					len;
+	int					s_pid;
+	struct sigaction	act;
+	int					check;
 
-	print_pid();
-	signal(SIGUSR1, sig_handler);
-	signal(SIGUSR2, sig_handler);
-	signal(SIGINT, sig_handler);
+	act.sa_handler = &sig_handler;
+	sigemptyset(&act.sa_mask);
+	act.sa_flags = 0;
+	sigaction(SIGUSR1, &act, NULL);
+	sigaction(SIGUSR2, &act, NULL);
+	sigaction(SIGINT, &act, NULL);
+	print_pid(1);
 	while (1)
 	{
-		g_letter = 0;
-		len = get_len();
+		s_pid = get_int();
+		len = get_int();
+		check = get_int();
 		str = get_str(len);
 		if (str)
-		{
-			write(1, str, len);
-			free(str);
-		}
+			print(str, s_pid, check);
 	}
 }
